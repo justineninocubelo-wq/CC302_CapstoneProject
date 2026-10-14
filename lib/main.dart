@@ -43,6 +43,12 @@ class BookItem {
   final String description;
   final IconData icon;
 
+  List<String> get readingPages => List.generate(5, (index) {
+    const chapterNames = ['Opening Ideas', 'Discovering the Details', 'Putting Knowledge to Work', 'A Wider Perspective', 'Reflection and Further Reading'];
+    final chapter = chapterNames[index];
+    return '$chapter\n\n${description}\n\nIn this section of ${title}, readers are invited to look closely at the ideas behind ${category.toLowerCase()}. The most useful learning often begins with careful observation: notice the details, ask thoughtful questions, and connect new information with what you already know.\n\n${author} presents this subject as an opportunity to learn, reflect, and apply knowledge beyond the page. Consider how the topic relates to everyday experiences, classroom discussions, and the wider community. Write down important points as you read, and revisit them when a new question arises.\n\nA good reader does more than move from one paragraph to the next. Reading becomes meaningful when ideas are compared, evidence is considered, and conclusions are formed carefully. Use this page as a starting point for deeper exploration, and consult additional library resources when you want to learn more.';
+  });
+
   const BookItem({
     required this.title,
     required this.author,
@@ -118,6 +124,14 @@ class _LibroLinkAppState extends State<LibroLinkApp> {
           'A student-friendly guide to reasoning, arguments, evidence, and practical critical thinking.',
       icon: Icons.psychology_alt_rounded,
     ),
+    BookItem(title: 'The Lanterns of Maravilla', author: 'M. Reyes', category: 'Fiction', description: 'A young archivist discovers that the stories of a coastal town hold the key to its future.', icon: Icons.auto_stories_rounded),
+    BookItem(title: 'The Quiet Forest', author: 'Lina Mercado', category: 'Nature & Environment', description: 'Explore forests, biodiversity, conservation, and the delicate balance of natural ecosystems.', icon: Icons.forest_rounded),
+    BookItem(title: 'A Short History of the Philippines', author: 'R. D. Villanueva', category: 'History', description: 'An accessible overview of Philippine history, culture, communities, and turning points.', icon: Icons.account_balance_rounded),
+    BookItem(title: 'Everyday Science', author: 'Dr. Paolo Santos', category: 'Science', description: 'Discover the science behind energy, matter, weather, health, and everyday technology.', icon: Icons.science_rounded),
+    BookItem(title: 'The Art of Better Habits', author: 'Nina Flores', category: 'Self-Development', description: 'Practical ideas for building routines, managing time, and learning with intention.', icon: Icons.psychology_rounded),
+    BookItem(title: 'Poems for Rainy Afternoons', author: 'C. A. Dizon', category: 'Poetry', description: 'A fictional collection of reflective poems about memory, friendship, and growing up.', icon: Icons.edit_note_rounded),
+    BookItem(title: 'Foundations of Computing', author: 'Miguel Tan', category: 'Computer Science', description: 'Learn about algorithms, data, networks, and the principles behind modern computing.', icon: Icons.computer_rounded),
+    BookItem(title: 'Atlas of the Living World', author: 'Elena Cruz', category: 'Reference', description: 'A reference-style introduction to continents, habitats, species, and the planet we share.', icon: Icons.public_rounded),
   ];
 
   final Set<String> bookmarks = {};
@@ -202,6 +216,17 @@ class _LibroLinkAppState extends State<LibroLinkApp> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           margin: EdgeInsets.zero,
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF18282D),
+          labelStyle: const TextStyle(color: Color(0xFFB4C8CD)),
+          hintStyle: const TextStyle(color: Color(0xFF81979D)),
+          prefixIconColor: const Color(0xFF63C9D8),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Color(0xFF30474D))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Color(0xFF30474D))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Color(0xFF63C9D8), width: 1.6)),
+        ),
       ),
       home: currentUser == null
           ? LoginScreen(
@@ -212,7 +237,7 @@ class _LibroLinkAppState extends State<LibroLinkApp> {
                 login(account);
               },
             )
-          : HomeScreen(
+          : MainNavigationScreen(
               user: currentUser!,
               reservation: reservation,
               onLogout: logout,
@@ -226,7 +251,236 @@ class _LibroLinkAppState extends State<LibroLinkApp> {
                     : bookmarks.add(title);
               }),
               onReservation: (value) => setState(() => reservation = value),
+              onCancelReservation: () => setState(() => reservation = null),
             ),
+    );
+  }
+}
+
+
+class MainNavigationScreen extends StatefulWidget {
+  final UserAccount user;
+  final Reservation? reservation;
+  final VoidCallback onLogout;
+  final VoidCallback onThemeToggle;
+  final bool isDark;
+  final List<BookItem> books;
+  final Set<String> bookmarks;
+  final void Function(String) onBookmark;
+  final void Function(Reservation) onReservation;
+  final VoidCallback onCancelReservation;
+
+  const MainNavigationScreen({
+    super.key,
+    required this.user,
+    required this.reservation,
+    required this.onLogout,
+    required this.onThemeToggle,
+    required this.isDark,
+    required this.books,
+    required this.bookmarks,
+    required this.onBookmark,
+    required this.onReservation,
+    required this.onCancelReservation,
+  });
+
+  @override
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  int selectedIndex = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = <Widget>[
+      BookmarksScreen(books: widget.books, bookmarks: widget.bookmarks, onBookmark: (title) { widget.onBookmark(title); setState(() {}); }),
+      AboutScreen(),
+      HomeScreen(
+        user: widget.user,
+        reservation: widget.reservation,
+        onLogout: widget.onLogout,
+        onThemeToggle: widget.onThemeToggle,
+        isDark: widget.isDark,
+        books: widget.books,
+        bookmarks: widget.bookmarks,
+        onBookmark: widget.onBookmark,
+        onReservation: widget.onReservation,
+        onCancelReservation: widget.onCancelReservation,
+      ),
+      ProfileScreen(user: widget.user),
+      SettingsScreen(
+        isDark: widget.isDark,
+        onThemeToggle: widget.onThemeToggle,
+        onLogout: widget.onLogout,
+        user: widget.user,
+      ),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(index: selectedIndex, children: pages),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) => setState(() => selectedIndex = index),
+        height: 72,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.bookmark_border_rounded),
+            selectedIcon: Icon(Icons.bookmark_rounded),
+            label: 'Bookmarks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.info_outline_rounded),
+            selectedIcon: Icon(Icons.info_rounded),
+            label: 'About',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings_rounded),
+            label: 'Settings',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingsScreen extends StatelessWidget {
+  final bool isDark;
+  final VoidCallback onThemeToggle;
+  final VoidCallback onLogout;
+  final UserAccount user;
+
+  const SettingsScreen({
+    super.key,
+    required this.isDark,
+    required this.onThemeToggle,
+    required this.onLogout,
+    required this.user,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const SimpleAppBar(title: 'Settings'),
+      body: LibraryBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Row(
+                  children: [
+                    ProfileAvatar(name: user.fullName, radius: 28),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          const SizedBox(height: 3),
+                          Text(user.email, style: const TextStyle(color: muted, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.verified_user_outlined, color: libroBlue),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            const SectionHeading(title: 'Preferences', subtitle: 'Make LibroLink comfortable for you.'),
+            const SizedBox(height: 10),
+            Card(
+              child: SwitchListTile(
+                value: isDark,
+                onChanged: (_) => onThemeToggle(),
+                secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: libroBlue),
+                title: const Text('Dark appearance', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(isDark ? 'Dark theme is enabled' : 'Light theme is enabled'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.notifications_none_rounded, color: libroBlue),
+                title: const Text('Notifications'),
+                subtitle: const Text('Reservation reminders and library updates'),
+                trailing: const Text('Coming soon', style: TextStyle(color: muted, fontSize: 11)),
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Notifications'),
+                    content: const Text('Notification preferences will be available when LibroLink is connected to its notification service.'),
+                    actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Got it'))],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.lock_outline_rounded, color: libroBlue),
+                title: const Text('Privacy & account'),
+                subtitle: const Text('Review your account details'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Account information'),
+                    content: Text('Signed in as ${user.email}. For security, connect a secure authentication service before production use.'),
+                    actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.help_outline_rounded, color: libroBlue),
+                title: const Text('Help Center'),
+                subtitle: const Text('Learn how to use LibroLink and its library features'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpScreen())),
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Sign out?'),
+                    content: const Text('You can sign in again with your account details.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                      FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out')),
+                    ],
+                  ),
+                );
+                if (confirmed == true) onLogout();
+              },
+              icon: const Icon(Icons.logout_rounded),
+              label: const Text('Sign out'),
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB42318), minimumSize: const Size.fromHeight(52)),
+            ),
+            const SizedBox(height: 20),
+            const Center(child: Text('LibroLink • Library companion', style: TextStyle(color: muted, fontSize: 12))),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -278,101 +532,49 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: LibraryBackground(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(26, 30, 26, 30),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: Column(
-                  children: [
-                    const AppBrand(showTagline: true),
-                    const SizedBox(height: 28),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(26),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Welcome back', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700, color: ink)),
-                            const SizedBox(height: 5),
-                            const Text('Sign in to continue to your library space.', style: TextStyle(color: muted)),
-                            const SizedBox(height: 24),
-                            TextField(
-                              controller: email,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                labelText: 'Email address',
-                                prefixIcon: Icon(Icons.alternate_email_rounded),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            TextField(
-                              controller: password,
-                              obscureText: obscure,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                                suffixIcon: IconButton(
-                                  onPressed: () => setState(() => obscure = !obscure),
-                                  icon: Icon(obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () => showInfo(
-                                  context,
-                                  'Password recovery',
-                                  'Password recovery is represented as a UI flow in this prototype. Connect this action to your authentication service for production use.',
-                                ),
-                                child: const Text('Forgot password?'),
-                              ),
-                            ),
-                            if (error != null) ...[
-                              const SizedBox(height: 2),
-                              Text(error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
-                              const SizedBox(height: 8),
-                            ],
-                            const SizedBox(height: 6),
-                            PrimaryButton(label: 'Sign In', icon: Icons.arrow_forward_rounded, onPressed: submit),
-                            const SizedBox(height: 18),
-                            const Row(
-                              children: [
-                                Expanded(child: Divider()),
-                                Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('OR', style: TextStyle(fontSize: 11, color: muted))),
-                                Expanded(child: Divider()),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Center(
-                              child: TextButton.icon(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => RegisterScreen(onRegister: widget.onRegister),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                                label: const Text('Create a new account'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Mater Dei College • Library Services', style: TextStyle(fontSize: 11, color: muted)),
-                  ],
+          child: LayoutBuilder(builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 760;
+            final loginForm = ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(26),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    const Text('Welcome back', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 5),
+                    const Text('Sign in to continue to your library space.', style: TextStyle(color: muted)),
+                    const SizedBox(height: 24),
+                    TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email address', prefixIcon: Icon(Icons.alternate_email_rounded))),
+                    const SizedBox(height: 14),
+                    TextField(controller: password, obscureText: obscure, decoration: InputDecoration(labelText: 'Password', prefixIcon: const Icon(Icons.lock_outline_rounded), suffixIcon: IconButton(onPressed: () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded)))),
+                    Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => showInfo(context, 'Password recovery', 'Password recovery is a prototype flow. Connect it to your authentication service for production use.'), child: const Text('Forgot password?'))),
+                    if (error != null) Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(error!, style: const TextStyle(color: Colors.red, fontSize: 13))),
+                    PrimaryButton(label: 'Sign In', icon: Icons.arrow_forward_rounded, onPressed: submit),
+                    const SizedBox(height: 14),
+                    Center(child: TextButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterScreen(onRegister: widget.onRegister))), icon: const Icon(Icons.person_add_alt_1_rounded), label: const Text('Create a new account'))),
+                  ]),
                 ),
               ),
-            ),
-          ),
+            );
+            final branding = ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: wide ? CrossAxisAlignment.start : CrossAxisAlignment.center, children: [
+                const AppBrand(showTagline: true),
+                const SizedBox(height: 24),
+                const Icon(Icons.local_library_rounded, size: 90, color: libroBlue),
+                const SizedBox(height: 18),
+                Text('Your library,\nyour next discovery.', textAlign: wide ? TextAlign.left : TextAlign.center, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, height: 1.15)),
+                const SizedBox(height: 12),
+                const Text('Explore stories, learn something new, and keep your reading journey connected.', textAlign: TextAlign.center, style: TextStyle(color: muted, height: 1.6)),
+              ]),
+            );
+            return Center(child: SingleChildScrollView(padding: const EdgeInsets.all(28), child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1120), child: wide ? Row(crossAxisAlignment: CrossAxisAlignment.center, children: [Expanded(child: Padding(padding: const EdgeInsets.all(24), child: branding)), const SizedBox(width: 42), Expanded(child: Center(child: loginForm))]) : Column(children: [branding, const SizedBox(height: 28), loginForm, const SizedBox(height: 14), const Text('Mater Dei College • Library Services', style: TextStyle(fontSize: 11, color: muted))]))));
+          }),
         ),
       ),
     );
   }
+
 }
 
 class RegisterScreen extends StatefulWidget {
@@ -490,6 +692,7 @@ class HomeScreen extends StatelessWidget {
   final Set<String> bookmarks;
   final void Function(String) onBookmark;
   final void Function(Reservation) onReservation;
+  final VoidCallback onCancelReservation;
 
   const HomeScreen({
     super.key,
@@ -502,22 +705,13 @@ class HomeScreen extends StatelessWidget {
     required this.bookmarks,
     required this.onBookmark,
     required this.onReservation,
+    required this.onCancelReservation,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: LibroDrawer(
-        user: user,
-        onLogout: onLogout,
-        onThemeToggle: onThemeToggle,
-        isDark: isDark,
-        books: books,
-        bookmarks: bookmarks,
-        onBookmark: onBookmark,
-        onReservation: onReservation,
-      ),
-      appBar: const LibroAppBar(),
+      appBar: const SimpleAppBar(title: 'LibroLink'),
       body: LibraryBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(22, 8, 22, 40),
@@ -614,28 +808,37 @@ class HomeScreen extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(color: const Color(0xFFE5F5F8), borderRadius: BorderRadius.circular(15)),
-              child: const Icon(Icons.event_available_rounded, color: libroBlue),
-            ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Container(width: 50, height: 50, decoration: BoxDecoration(color: const Color(0xFFE5F5F8), borderRadius: BorderRadius.circular(15)), child: const Icon(Icons.event_available_rounded, color: libroBlue)),
             const SizedBox(width: 13),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Upcoming reservation', style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 4),
-                Text('Seat ${reservation!.seat} • ${reservation!.date}', style: const TextStyle(color: muted, fontSize: 12)),
-                Text(reservation!.time, style: const TextStyle(color: muted, fontSize: 12)),
-              ]),
-            ),
-          ],
-        ),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Upcoming reservation', style: TextStyle(fontWeight: FontWeight.w700)), SizedBox(height: 3), Text('Your seat is reserved', style: TextStyle(color: muted, fontSize: 12))])),
+            IconButton(tooltip: 'Cancel reservation', onPressed: () async {
+              final cancel = await showDialog<bool>(context: context, barrierDismissible: false, builder: (dialogContext) => AlertDialog(
+                title: const Text('Cancel reservation?'),
+                content: Text('Are you sure you want to cancel your reservation?\n\nSeat: ${reservation!.seat}\nDate: ${reservation!.date}\nTime: ${reservation!.time}\nName: ${reservation!.name}'),
+                actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Keep reservation')), FilledButton(style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB42318)), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Cancel reservation'))],
+              ));
+              if (cancel == true) { onCancelReservation(); if (context.mounted) showInfo(context, 'Reservation cancelled', 'Your seat reservation has been cancelled successfully.'); }
+            }, icon: const Icon(Icons.cancel_outlined, color: Color(0xFFB42318))),
+          ]),
+          const Divider(height: 26),
+          _reservationDetail(Icons.event_seat_outlined, 'Seat number', reservation!.seat),
+          _reservationDetail(Icons.calendar_month_outlined, 'Date', reservation!.date),
+          _reservationDetail(Icons.schedule_rounded, 'Time slot', reservation!.time),
+          _reservationDetail(Icons.person_outline_rounded, 'Reserved for', reservation!.name),
+          _reservationDetail(Icons.badge_outlined, 'Student ID', reservation!.idNumber),
+          _reservationDetail(Icons.school_outlined, 'Course', reservation!.course),
+          _reservationDetail(Icons.menu_book_outlined, 'Purpose', reservation!.purpose),
+        ]),
       ),
     );
   }
+
+  Widget _reservationDetail(IconData icon, String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(children: [Icon(icon, size: 18, color: libroBlue), const SizedBox(width: 10), SizedBox(width: 105, child: Text(label, style: const TextStyle(color: muted, fontSize: 12))), Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12))) ]),
+  );
 
   Widget _libraryTips() {
     return const Card(
@@ -688,13 +891,21 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canGoBack = Navigator.of(context).canPop();
+
     return AppBar(
-      title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-      leading: IconButton(
-        tooltip: 'Back',
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.arrow_back_rounded),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
       ),
+      automaticallyImplyLeading: false,
+      leading: canGoBack
+          ? IconButton(
+              tooltip: 'Go back',
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          : null,
     );
   }
 }
@@ -1085,7 +1296,15 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
     );
     widget.onReservation(reservation);
     Navigator.popUntil(context, (route) => route.isFirst);
-    showInfo(context, 'Reservation confirmed', 'Seat ${widget.seat} has been reserved for ${reservation.date} at ${reservation.time}.');
+    showDialog<void>(context: context, barrierDismissible: false, builder: (dialogContext) => AlertDialog(
+      icon: const Icon(Icons.check_circle_rounded, color: libroBlue, size: 42),
+      title: const Text('Reservation confirmed'),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Your library seat has been reserved successfully.'), const SizedBox(height: 14),
+        Text('Name: ${reservation.name}'), Text('Student ID: ${reservation.idNumber}'), Text('Seat: ${reservation.seat}'), Text('Date: ${reservation.date}'), Text('Time: ${reservation.time}'), Text('Course: ${reservation.course}'), Text('Purpose: ${reservation.purpose}'),
+      ]),
+      actions: [FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close'))],
+    ));
   }
 
   @override
@@ -1211,8 +1430,14 @@ class _BooksScreenState extends State<BooksScreen> {
                     book: book,
                     saved: widget.bookmarks.contains(book.title),
                     onBookmark: () {
+                      final wasSaved = widget.bookmarks.contains(book.title);
                       widget.onBookmark(book.title);
                       setState(() {});
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        content: Text(wasSaved ? 'Removed “${book.title}” from bookmarks.' : '“${book.title}” bookmarked successfully.'),
+                        action: SnackBarAction(label: 'OK', onPressed: () {}),
+                      ));
                     },
                     onRead: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReaderScreen(book: book))),
                   ),
@@ -1284,7 +1509,7 @@ class BookCard extends StatelessWidget {
                 gradient: const LinearGradient(colors: [Color(0xFFDFF4F7), Color(0xFFF0FAFB)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(book.icon, size: 42, color: libroBlue),
+              child: Padding(padding: const EdgeInsets.all(7), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(book.icon, size: 30, color: libroBlueDark), const SizedBox(height: 8), Text(book.title, maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: libroBlueDark, height: 1.15)), const SizedBox(height: 4), Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 6.5, color: muted))])),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -1326,6 +1551,11 @@ class ReaderScreen extends StatefulWidget {
 class _ReaderScreenState extends State<ReaderScreen> {
   double size = 17;
   bool dark = false;
+  int currentPage = 0;
+  late final PageController pageController = PageController();
+
+  @override
+  void dispose() { pageController.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -1339,45 +1569,54 @@ class _ReaderScreenState extends State<ReaderScreen> {
         backgroundColor: dark ? const Color(0xFF182224) : Colors.white,
         foregroundColor: foreground,
         actions: [
-          IconButton(onPressed: () => setState(() => size = (size + 1).clamp(14, 26)), tooltip: 'Increase text size', icon: const Icon(Icons.text_increase_rounded)),
-          IconButton(onPressed: () => setState(() => dark = !dark), tooltip: 'Reader theme', icon: Icon(dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded)),
+          IconButton(
+            onPressed: size <= 14 ? null : () => setState(() => size = (size - 1).clamp(14, 26).toDouble()),
+            tooltip: 'Decrease text size',
+            icon: const Icon(Icons.text_decrease_rounded),
+          ),
+          IconButton(
+            onPressed: () => setState(() => size = 17),
+            tooltip: 'Reset text size',
+            icon: const Icon(Icons.format_size_rounded),
+          ),
+          IconButton(
+            onPressed: size >= 26 ? null : () => setState(() => size = (size + 1).clamp(14, 26).toDouble()),
+            tooltip: 'Increase text size',
+            icon: const Icon(Icons.text_increase_rounded),
+          ),
+          IconButton(
+            onPressed: () => setState(() => dark = !dark),
+            tooltip: 'Reader theme',
+            icon: Icon(dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 55),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(child: Icon(widget.book.icon, size: 68, color: libroBlue)),
-                const SizedBox(height: 18),
-                Center(child: Text(widget.book.title, textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: foreground, height: 1.25))),
-                const SizedBox(height: 7),
-                Center(child: Text(widget.book.author, style: TextStyle(color: dark ? Colors.white60 : muted))),
-                const SizedBox(height: 34),
-                Text('Chapter 1', style: TextStyle(fontSize: size + 4, fontWeight: FontWeight.w700, color: foreground)),
-                const SizedBox(height: 14),
-                Text(
-                  'Learning begins with curiosity. Every question opens a path toward understanding, and every book gives us another way to explore that path. In this digital reading space, students can access resources wherever they are and continue learning at their own pace.',
-                  style: TextStyle(fontSize: size, height: 1.7, color: foreground),
-                ),
-                const SizedBox(height: 22),
-                Text(
-                  'The library is more than a room filled with books. It is a shared space for discovery, reflection, collaboration, and independent study. LibroLink brings part of that experience to a mobile device while keeping the physical library experience simple and organized.',
-                  style: TextStyle(fontSize: size, height: 1.7, color: foreground),
-                ),
-                const SizedBox(height: 22),
-                Text(
-                  'Continue reading to explore the ideas, examples, and activities included in this digital copy.',
-                  style: TextStyle(fontSize: size, height: 1.7, color: foreground),
-                ),
-              ],
-            ),
-          ),
+      body: Column(children: [
+        Expanded(child: PageView.builder(
+        controller: pageController,
+        onPageChanged: (index) => setState(() => currentPage = index),
+        itemCount: widget.book.readingPages.length,
+        itemBuilder: (context, index) => SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 55),
+          child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 720), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Icon(widget.book.icon, size: 58, color: libroBlue)),
+            const SizedBox(height: 14),
+            Center(child: Text(widget.book.title, textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: foreground, height: 1.25))),
+            const SizedBox(height: 7),
+            Center(child: Text('${widget.book.author}  •  Page ${index + 1} of 5', style: TextStyle(color: dark ? Colors.white60 : muted))),
+            const SizedBox(height: 28),
+            Text(widget.book.readingPages[index], style: TextStyle(fontSize: size, height: 1.8, color: foreground)),
+            const SizedBox(height: 28),
+            Center(child: Text('LIBROLINK DIGITAL READING', style: TextStyle(letterSpacing: 1.2, fontSize: 10, fontWeight: FontWeight.w700, color: dark ? Colors.white38 : muted))),
+          ]))),
         ),
-      ),
+      )),
+      Container(color: dark ? const Color(0xFF182224) : Colors.white, padding: const EdgeInsets.fromLTRB(18, 12, 18, 18), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text('Page ${currentPage + 1} of ${widget.book.readingPages.length}', style: TextStyle(color: foreground, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 10), LinearProgressIndicator(value: (currentPage + 1) / widget.book.readingPages.length, minHeight: 4, borderRadius: BorderRadius.circular(5)),
+        const SizedBox(height: 12), Row(children: [Expanded(child: OutlinedButton.icon(onPressed: currentPage == 0 ? null : () => pageController.previousPage(duration: const Duration(milliseconds: 250), curve: Curves.easeInOut), icon: const Icon(Icons.arrow_back_rounded), label: const Text('Previous'))), const SizedBox(width: 12), Expanded(child: FilledButton.icon(onPressed: currentPage >= widget.book.readingPages.length - 1 ? null : () => pageController.nextPage(duration: const Duration(milliseconds: 250), curve: Curves.easeInOut), icon: const Icon(Icons.arrow_forward_rounded), label: const Text('Next', style: TextStyle(fontWeight: FontWeight.w700)), iconAlignment: IconAlignment.end))]),
+      ])),
+      ]),
     );
   }
 }
